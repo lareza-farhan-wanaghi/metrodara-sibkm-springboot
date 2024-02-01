@@ -1,0 +1,33 @@
+node {
+    def repourl = "${REGISTRY_URL}/${PROJECT_ID}/${ARTIFACT_REGISTRY}/product-service"
+    def mvnHome = tool name: 'maven', type: 'maven'
+    def mvn = "${mvnHome}/bin/mvn"
+    stage('Checkout'){
+        checkout([$class: 'GitSCM',
+            branches: [[name: '*/lareza-farhan-wanaghi']],
+            extensions:[],
+            userRemoteConfigs: [[credentialsId: 'git',
+            url: 'https://github.com/SIBKM-DevSecOps/product-service.git']]
+            ])
+    }
+    stage('Build and Push Image'){
+        withCredentials([file(credentialsId: 'gcp', variable: 'GC_KEY')]){
+            sh("gcloud auth activate-service-account --key-file=${GC_KEY}")
+            sh("gcloud auth configure-docker asia-southeast2-docker.pkg.dev")
+            sh("${mvn} clean install")
+            sh("docker build -t ${repourl} .")
+            sh("docker push ${repourl}")
+        }
+    }
+    stage('Deploy'){
+        sh "sed -i 's|IMAGE_URL|${repourl}|g' k8s/deployment.yaml"
+        step([$class: 'KubernetesEngineBuilder',
+            projectId: env.PROJECT_ID,
+            clusterName: env.CLUSTER,
+            location: env.ZONE,
+            manifestPattern: 'k8s/deployment.yaml',
+            credentialsId: env.SERVICE_ACCOUNT,
+            verifyDeployments: true
+            ])
+    }
+}

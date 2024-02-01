@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service-app
+spec:
+  selector:
+    matchLabels:
+      app: order-service-app
+  template:
+    metadata:
+      labels:
+        app: order-service-app
+    spec:
+      containers:
+      - name: order-service-app
+        image: IMAGE_URL
+        ports:
+        - containerPort: 8086
+        env:
+        - name: EUREKA_SERVER_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              key: eureka_server_address
+              name: eureka-cm
+        - name: CONFIG_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              key: config_server_url
+              name: config-cm
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: hostname
+              name: mysql-cm
+        - name: PRODUCT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: product_service_url
+              name: core-services-cm
+        - name: PAYMENT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: payment_service_url
+              name: core-services-cm
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service-svc
+spec:
+  selector:
+    app: order-service-app
+  ports:
+  - port: 80
+    targetPort: 8086
+

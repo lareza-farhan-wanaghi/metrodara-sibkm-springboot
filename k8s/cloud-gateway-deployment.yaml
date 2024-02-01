@@ -1,0 +1,56 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: cloud-gateway-app
+# spec:
+#   selector:
+#     matchLabels:
+#       app: cloud-gateway-app
+#   template:
+#     metadata:
+#       labels:
+#         app: cloud-gateway-app
+#     spec:
+#       containers:
+#       - name: cloud-gateway-app
+#         image: 890890123890/api-gateway
+#         ports:
+#         - containerPort: 9090
+#         env:
+#         - name: EUREKA_SERVER_ADDRESS
+#           valueFrom:
+#             configMapKeyRef:
+#               key: eureka_server_address
+#               name: eureka-cm
+#         - name: CONFIG_SERVER_URL
+#           valueFrom:
+#             configMapKeyRef:
+#               key: config_server_url
+#               name: config-cm
+#         - name: PRODUCT_SERVICE_URL
+#           valueFrom:
+#             configMapKeyRef:
+#               key: product_service_url
+#               name: core-services-cm
+#         - name: PAYMENT_SERVICE_URL
+#           valueFrom:
+#             configMapKeyRef:
+#               key: payment_service_url
+#               name: core-services-cm
+#         - name: ORDER_SERVICE_URL
+#           valueFrom:
+#             configMapKeyRef:
+#               key: order_service_url
+#               name: core-services-cm
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: cloud-gateway-svc
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: cloud-gateway-app
+#   ports:
+#   - port: 9090
+#     targetPort: 9090

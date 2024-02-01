@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: mysql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "12345678"
+      volumes:
+      - name: mysql-initdb
+        configMap:
+          name: mysql-initdb-cm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+  - port: 3306
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-cm
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS db_sibkm_payment; 
+    CREATE DATABASE IF NOT EXISTS db_sibkm_orders; 
+    CREATE DATABASE IF NOT EXISTS db_sibkm_product;

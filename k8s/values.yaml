@@ -1,0 +1,10 @@
+controller:
+  componentName: "jenkins-master"
+  serviceType: LoadBalancer
+  volumes:
+    - name: my-local-repo
+      hostPath:
+        path: "/Users/farhanlareza/Desktop/Personal/Learn/MetrodataAcademy%20-%20DevSecOps/Task%2012"
+  extraVolumeMounts:
+    - name: my-local-repo
+      mountPath: /var/jenkins_home/my-local-repo

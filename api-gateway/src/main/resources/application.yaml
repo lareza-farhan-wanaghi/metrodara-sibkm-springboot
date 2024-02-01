@@ -1,0 +1,46 @@
+server:
+  port: 9090
+
+spring:
+  config:
+    import: configserver:${CONFIG_SERVER_URL:http://localhost:9296}
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: PRODUCT-SERVICE
+          uri: ${PRODUCT_SERVICE_URL:lb://PRODUCT-SERVICE}
+          predicates:
+            - Path=/product/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 5
+        - id: ORDER-SERVICE
+          uri: ${ORDER_SERVICE_URL:lb://ORDER-SERVICE}
+          predicates:
+            - Path=/order/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+        - id: PAYMENT-SERVICE
+          uri: ${PAYMENT_SERVICE_URL:lb://PAYMENT-SERVICE}
+          predicates:
+            - Path=/payment/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+
+okta:
+  oauth2:
+    issuer: https://dev-18890763.okta.com/oauth2/default
+    audience: api://default
+    client-id: 0oacxi9r34WE7BPv35d7
+    client-secret: muuiKhAEN5Exsn-WwHGChZ43BWNqUQv6uS18h9rZ49NGUjJwmU0hohhwEprti6jX
+    scopes: openid, profile, email, offline_access
